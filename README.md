@@ -1,4 +1,4 @@
-# OOP-Final-Project-SDL-based-chess-game
+# OS-SDL-based-chess-game
 Download all the files and store them in one folder
 Open that folder in vs code
 Use the following command to compile all the files
