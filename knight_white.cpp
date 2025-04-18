@@ -56,6 +56,11 @@ using namespace std;
                 White_Knight.moverRect.y = y; 
         }
     }
+    void knight_white:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        White_Knight.moverRect.x = x;
+        White_Knight.moverRect.y = y;
+    }
     string knight_white:: getType() //Returns a string identifying the type of the piece ("White_Knight").
     {
         return "White_Knight";

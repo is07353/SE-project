@@ -40,6 +40,11 @@ The second constructor initializes the Black_Queen object's position based on th
             Black_Queen.moverRect.y = y; 
         }
     }
+    void queen_black:: move_ai(int x,int y,int selected_x,int selected_y) 
+    {
+        Black_Queen.moverRect.x = x;
+        Black_Queen.moverRect.y = y; 
+    }
     void queen_black:: set_x_y(int x, int y)// Updates the queen's position to a specific x and y coordinate.
     {
         Black_Queen.moverRect.x = x;

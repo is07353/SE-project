@@ -42,6 +42,12 @@ using namespace std;
             White_Bishop.moverRect.y = y; 
         }
 
+
+    }
+    void Bishop_white:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        White_Bishop.moverRect.x = x;
+        White_Bishop.moverRect.y = y; 
     }
     string Bishop_white:: getType()
     {

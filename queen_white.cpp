@@ -42,6 +42,11 @@ The second constructor initializes the Black_Queen object's position based on th
             White_Queen.moverRect.y = y; 
         }
     }
+    void  queen_white:: move_ai(int x,int y,int selected_x,int selected_y) 
+    {
+        White_Queen.moverRect.x = x;
+        White_Queen.moverRect.y = y; 
+    }
     string queen_white:: getType()
     {
         return "Queen_White";

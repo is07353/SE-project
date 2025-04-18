@@ -44,6 +44,12 @@ using namespace std;
         }
 
      }
+    void Bishop_black:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        Black_Bishop.moverRect.x = x;
+        Black_Bishop.moverRect.y = y;
+    }
+
     string Bishop_black:: getType()
     {
         return "Bishop_Black"; // Method to get the type of the piece (Bishop_Black)

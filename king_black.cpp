@@ -58,6 +58,11 @@ using namespace std;
             Black_King.moverRect.y = y;
         }
      }
+    void king_black:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        Black_King.moverRect.x = x;
+        Black_King.moverRect.y = y;
+    }
     string king_black:: getType() // Returns the type of the chess piece (King_Black)
     {
         return "King_Black";

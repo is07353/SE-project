@@ -19,15 +19,17 @@
 using namespace std;
 Board:: Board():Gamechess{}
     {
+        
         for(int i = 0; i <= 7; i++)
         {
             for(int j = 0; j <= 7; j++)
             {
-                cout<<i<<" "<<j<<endl;
+                // cout<<board[i][j];
                 board[i][j] = nullptr;
             }
+            // cout<<endl;
         }
-        cout<<"test tty"<<endl;
+        // cout<<"test tty"<<endl;
         *ptrx = -10;
         *ptry = -10;
         board[0][6] = new Pawn_black;
@@ -44,8 +46,8 @@ Board:: Board():Gamechess{}
         board[5][7] = new Bishop_black;
         board[1][7] = new knight_black;
         board[6][7] = new knight_black;
-        board[3][7] = new king_black;
-        board[4][7] = new queen_black;
+        board[4][7] = new king_black;
+        board[3][7] = new queen_black;
         //white pieces
         board[0][1] = new white_pawn;
         board[1][1] = new white_pawn;
@@ -64,6 +66,10 @@ Board:: Board():Gamechess{}
         board[4][0] = new king_white;
         board[3][0] = new queen_white;
         
+        
+    
+        
+        
     }
 Board:: ~Board()
     {
@@ -79,6 +85,7 @@ Board:: ~Board()
             }
         }
     }
+
 void Board:: run(SDL_Renderer* gRenderer,SDL_Texture* assets, bool first_time)
     {   
         if(first_time)
@@ -340,7 +347,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx][*ptry-i] != nullptr)
                             {
-                                cout<<"loop 1 fail"<<endl;
+                                // cout<<"loop 1 fail"<<endl;
                                 return;
                             }
                             }
@@ -351,7 +358,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx][*ptry+i] != nullptr)
                             {
-                                cout<<"loop 2 fail"<<endl;
+                                // cout<<"loop 2 fail"<<endl;
                                 return;
                             }
                             }
@@ -363,7 +370,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx-i][*ptry] != nullptr)
                             {
-                                cout<<"loop 3 fail"<<endl;
+                                // cout<<"loop 3 fail"<<endl;
                                 return;
                             }
                             }
@@ -374,7 +381,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx+i][*ptry] != nullptr)
                             {
-                                cout<<"loop 4 fail "<< *ptrx-i<<' '<<*ptry<<endl;
+                                // cout<<"loop 4 fail "<< *ptrx-i<<' '<<*ptry<<endl;
                                 return;
                             }
                             }
@@ -477,7 +484,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                                 {
                                     if (*ptrx+i!=temp_ptrx and *ptry-1 != temp_ptry)
                                     {
-                                    cout<<"loop 1 failed"<<endl;//If there's an obstacle or a piece between the queen's current and target positions, it logs a failure for that particular loop.
+                                    // cout<<"loop 1 failed"<<endl;//If there's an obstacle or a piece between the queen's current and target positions, it logs a failure for that particular loop.
                                     return;
                                     }
                                 }
@@ -493,7 +500,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {
                                 if (*ptrx+i!=temp_ptrx and *ptry+i != temp_ptry)
                                 {
-                                cout<<"loop 2 failed"<<endl;
+                                // cout<<"loop 2 failed"<<endl;
                                 return;
                                 }
                             }
@@ -509,7 +516,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {
                                 if (*ptrx-i!=temp_ptrx and *ptry+i != temp_ptry)
                                 {
-                                cout<<"loop 3 failed"<<endl;
+                                // cout<<"loop 3 failed"<<endl;
                                 return;
                                 }
                             }
@@ -524,7 +531,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             if(board[*ptrx-i][*ptry-i] != nullptr && *ptrx-i!= temp_ptrx && *ptry-i!= temp_ptry)
                             {
 
-                                cout<<"loop 4 failed"<<endl;
+                                // cout<<"loop 4 failed"<<endl;
                                 return;
                             }
                             }
@@ -535,7 +542,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx][*ptry-i] != nullptr)
                             {
-                                cout<<"loop 5 failed"<<endl;
+                                // cout<<"loop 5 failed"<<endl;
                                 return;
                             }
                             }
@@ -546,7 +553,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx][*ptry+i] != nullptr)
                             {
-                                cout<<"loop 6 failed"<<endl;
+                                // cout<<"loop 6 failed"<<endl;
                                 return;
                             }
                             }
@@ -557,7 +564,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx-i][*ptry] != nullptr)
                             {
-                                cout<<"loop 7 failed"<<endl;
+                                // cout<<"loop 7 failed"<<endl;
                                 return;
                             }
                             }
@@ -568,7 +575,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                             {     
                             if(board[*ptrx-i][*ptry] != nullptr)
                             {
-                                cout<<"loop 8 failed"<<endl;
+                                // cout<<"loop 8 failed"<<endl;
                                 return;
                             }
                             }
@@ -617,8 +624,16 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
                     cout<<"placed at x:"<< temp_ptrx<<" y:"<< temp_ptry<<endl;
                     board[temp_ptrx][temp_ptry] =  board[*ptrx][*ptry]; //memory leak
                     board[*ptrx][*ptry]=nullptr;
+
+                    std::string move = get_uci_move(*ptrx, *ptry, temp_ptrx, temp_ptry);
+                    move_history.push_back(move);
+
+                    std::cout << "Move added: " << move << std::endl;
+                    std::cout << generate_uci_move_history() << std::endl;
+
                     next_player(temp_ptrx,temp_ptry);//It calls next_player function to switch to the next player's turn based on the moved piece's new position.
                 }
+
                 //It resets the pointers *ptrx and *ptry to -10, indicating no currently selected piece.
                 *ptrx=-10;
                 *ptry=-10;
@@ -637,11 +652,79 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         }
     }
 
-    void Board:: next_player(int x, int y)
+    std::string Board::get_uci_move(int from_x, int from_y, int to_x, int to_y) const {
+        std::string move = "";
+        move += ('a' + from_x);  // file
+        move += ('1' + from_y);  // rank
+        move += ('a' + to_x);
+        move += ('1' + to_y);
+        return move;
+    }
+    
+    std::string Board::generate_uci_move_history() const {
+        std::string uci = "position startpos moves";
+        for (const std::string& move : move_history) {
+            uci += " " + move;
+        }
+        return uci;
+    }
+    void Board::apply_uci_move(const std::string& uci_move) {
+        if (uci_move.length() < 4) return;
+    
+        int from_x = uci_move[0] - 'a';
+        int from_y = uci_move[1] - '1';
+        int to_x   = uci_move[2] - 'a';
+        int to_y   = uci_move[3] - '1';
+        
+        // std::cout<<from_x<<std::endl;
+        // std::cout<<from_y<<std::endl;
+        // std::cout<<to_x<<std::endl;
+        // std::cout<<to_y<<std::endl;
+
+        if (from_x < 0 || from_x >= 8 || from_y < 0 || from_y >= 8 ||
+            to_x < 0 || to_x >= 8 || to_y < 0 || to_y >= 8)
+            return;
+    
+        if (board[from_x][from_y] == nullptr) return;
+        // Move piece in board array
+        board[to_x][to_y] = board[from_x][from_y];
+        board[from_x][from_y] = nullptr;
+    
+        int new_screen_x = 80 * (to_x + 2) + 40;
+        int new_screen_y = 70 * (to_y) + 35;
+        int old_screen_x = 80 * (from_x + 2) + 40;
+        int old_screen_y = 70 * (from_y) + 35;
+        
+        std::cout<<to_x<<std::endl;
+        std::cout<<to_y<<std::endl;
+        std::cout<<from_x<<std::endl;
+        std::cout<<from_y<<std::endl;
+
+        std::cout<<new_screen_x<<std::endl;
+        std::cout<<new_screen_y<<std::endl;
+        std::cout<<old_screen_x<<std::endl;
+        std::cout<<old_screen_y<<std::endl;
+
+        // std::cout << "Moving: " << board[to_x][to_y]->getType() << " from " 
+        //   << char('a' + from_x) << from_y + 1 << " to "
+        //   << char('a' + to_x) << to_y + 1 << std::endl;
+    
+        board[to_x][to_y]->move_ai(new_screen_x, new_screen_y, old_screen_x, old_screen_y);
+    
+        move_history.push_back(uci_move);
+
+        next_player(to_x, to_y);
+
+    }
+    
+    
+
+void  Board:: next_player(int x, int y)
     { /*This function iterates through the entire chessboard (board) to assess the pieces.
         For each piece found on the board:
         If the piece's color (black or white) is different from the color of the piece at position (x, y), it sets the piece as enabled (set_enabled(true)).
         Otherwise, it disables the piece (set_enabled(false)).*/
+        
         for(int i = 0; i <= 7; i++)
         {
             for(int j = 0; j <= 7; j++)
@@ -674,3 +757,39 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         }
        
     }
+    void Board::print_board_debug() const {
+        std::cout << "\n    a b c d e f g h\n";
+        std::cout << "   -----------------\n";
+    
+        for (int y = 7; y >= 0; y--) {
+            std::cout << y + 1 << " | ";
+            for (int x = 0; x < 8; x++) {
+                if (board[x][y] == nullptr) {
+                    std::cout << ". ";
+                } else {
+                    std::string type = board[x][y]->getType();
+                    char piece = '?';
+    
+                    if (type == "Pawn_Black") piece = 'p';
+                    else if (type == "Rook_Black") piece = 'r';
+                    else if (type == "Black_Knight") piece = 'n';
+                    else if (type == "Bishop_Black") piece = 'b';
+                    else if (type == "Queen_Black") piece = 'q';
+                    else if (type == "King_Black") piece = 'k';
+                    else if (type == "Pawn_White") piece = 'P';
+                    else if (type == "Rook_White") piece = 'R';
+                    else if (type == "White_Knight") piece = 'N';
+                    else if (type == "Bishop_White") piece = 'B';
+                    else if (type == "Queen_White") piece = 'Q';
+                    else if (type == "King_White") piece = 'K';
+    
+                    std::cout << piece << " ";
+                }
+            }
+            std::cout << "| " << y + 1 << "\n";
+        }
+    
+        std::cout << "   -----------------\n";
+        std::cout << "    a b c d e f g h\n";
+    }
+    

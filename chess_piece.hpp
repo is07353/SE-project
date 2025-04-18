@@ -8,6 +8,7 @@ class chess_piece
     // Pure virtual functions to be implemented by derived classes
     
     virtual void move(int x,int y,int yselected_x,int selected_y)=0;
+    virtual void move_ai(int x,int y,int yselected_x,int selected_y)=0;
     virtual void initializer(SDL_Renderer* gRenderer,SDL_Texture* assets,int num) = 0;
     virtual string getType() = 0;
     virtual void setFirstMove(bool first)=0;

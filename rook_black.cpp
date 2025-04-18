@@ -44,6 +44,11 @@ using namespace std;
             Black_rook.moverRect.y = y; 
         }
     }
+    void rook_black::  move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        Black_rook.moverRect.x = x;
+        Black_rook.moverRect.y = y;  
+    }
     string rook_black::  getType(){return "Rook_Black";}// Returns the type of the piece
     int rook_black::  getPlacedX()// Returns the X coordinate of the piece
     {

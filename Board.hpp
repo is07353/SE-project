@@ -24,11 +24,20 @@ class Board : private Gamechess
 {   private:
     chess_piece* board[8][8];//an array of 8 by 8 is created for the board
     chess_piece* temppiece;
+    std::vector<std::string> move_history;
+
+
     public:
     // Constructor and member functions
     Board();// Constructor for initializing the board
     
     void run(SDL_Renderer* gRenderer,SDL_Texture* assets, bool first_time);    // Function to run the game logic and manage piece initialization
+
+    std::string generate_uci_move_history() const;
+    std::string get_uci_move(int from_x, int from_y, int to_x, int to_y) const;
+    void apply_uci_move(const std::string& uci_move);
+    void print_board_debug() const;
+
 
     bool black_queen_onboard();// Check if the black queen is on the board
     bool white_queen_onboard();// Check if the white queen is on the board

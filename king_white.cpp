@@ -22,7 +22,7 @@ using namespace std;
             White_King.moverRect.x = x;
             White_King.moverRect.y = y; 
         }
-        else if(x>selected_x-20 and x<selected_x+20   and y<selected_y+70 and y>selected_y-25  )// Condition: Moves the king one square down
+        else if(x>selected_x-20 and x<selected_x+20   and y<=selected_y+70 and y>selected_y-25  )// Condition: Moves the king one square down
         {   
             White_King.moverRect.x = x;
             White_King.moverRect.y = y;
@@ -32,7 +32,7 @@ using namespace std;
             White_King.moverRect.x = x;
             White_King.moverRect.y = y;
         }
-        else if(x>selected_x and x<selected_x+90   and y<selected_y+70 and y>selected_y  )// Condition: Moves the king diagonally up-right
+        else if(x>selected_x and x<selected_x+90   and y<=selected_y+70 and y>selected_y  )// Condition: Moves the king diagonally up-right
         {   
             White_King.moverRect.x = x;
             White_King.moverRect.y = y;
@@ -57,6 +57,11 @@ using namespace std;
             White_King.moverRect.x = x;
             White_King.moverRect.y = y;
         }
+    }
+    void king_white:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        White_King.moverRect.x = x;
+        White_King.moverRect.y = y; 
     }
     string king_white:: getType()
     {

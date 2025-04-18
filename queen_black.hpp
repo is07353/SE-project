@@ -7,7 +7,7 @@ using namespace std;
 class queen_black : public chess_piece
 {
     private:
-    Unit Black_Queen = {{1585, 106, 68, 138},{520, 540, 50, 50}};// Position and size information for rendering
+    Unit Black_Queen = {{1585, 106, 68, 138},{440, 540, 50, 50}};// Position and size information for rendering
     bool enabled = true;// State to track if the piece is enabled
     public:
     // Constructors
@@ -17,6 +17,7 @@ class queen_black : public chess_piece
     virtual void setFirstMove(bool first);// Marks the first move
     virtual void initializer(SDL_Renderer* gRenderer,SDL_Texture* assets,int num) override;// Initializes piece appearance
     virtual void move(int x,int y,int selected_x,int selected_y) override;// Handles piece movement logic
+    virtual void move_ai(int x,int y,int selected_x,int selected_y) override;
     void set_x_y(int x, int y);
     virtual string getType();// Returns the type of the piece
     virtual int getPlacedX();// Returns the x-coordinate of the piece's position

@@ -55,6 +55,11 @@ using namespace std;
             
         }
     }
+    void Pawn_black:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        Black_Pawn.moverRect.x = x;
+        Black_Pawn.moverRect.y = y;
+    }
     void Pawn_black:: setFirstMove(bool first)// Sets the first move status of the black pawn
     {
         first_move = first;

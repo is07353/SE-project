@@ -32,6 +32,7 @@ using namespace std;
     }
      void rook_white:: move(int x,int y,int selected_x,int selected_y)  // Handles the rook's movement logic based on selected coordinates
      {
+        //std::cout<<"rook salam pesh karta hai"<<std::endl;
         if( x>selected_x-20 and x<selected_x+20    )
         {   
             White_rook.moverRect.x = x;
@@ -42,7 +43,17 @@ using namespace std;
             White_rook.moverRect.x = x;
             White_rook.moverRect.y = y; 
         }
+    
+        
+        //White_rook.moverRect.x = x;
+        //White_rook.moverRect.y = y;
+        
      }
+    void rook_white:: move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        White_rook.moverRect.x = x;
+        White_rook.moverRect.y = y;
+    }
     string rook_white:: getType()// Returns the type of the piece
     {
         return "Rook_White";

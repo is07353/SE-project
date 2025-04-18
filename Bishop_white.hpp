@@ -15,6 +15,7 @@ class Bishop_white: public chess_piece
     virtual void setFirstMove(bool first);
     virtual void initializer(SDL_Renderer* gRenderer,SDL_Texture* assets,int num) override;
     virtual void move(int x,int y,int selected_x,int selected_y) override;
+    virtual void move_ai(int x,int y,int selected_x,int selected_y) override;
     virtual string getType();
     virtual int getPlacedX();
     virtual int getPlacedY();
