@@ -17,6 +17,7 @@ class white_pawn : public chess_piece // Declaration of the white_pawn class inh
     // Overrides for base class methods
     virtual void initializer(SDL_Renderer* gRenderer,SDL_Texture* assets,int num) override;
     virtual void move(int x,int y,int selected_x,int selected_y) override;// Handles movement logic for the white pawn based on selected coordinates
+    virtual void move_ai(int x,int y,int selected_x,int selected_y) override;
     virtual void setFirstMove(bool first) override;// Sets the flag for the first move of the white pawn
     virtual string getType();// Retrieves the type of the piece
     virtual int getPlacedX (); // Retrieves the X coordinate of the piece on the board

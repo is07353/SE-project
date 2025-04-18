@@ -23,7 +23,7 @@ using namespace std;
     // Handles movement logic for the white pawn based on selected coordinates
     void white_pawn::move(int x,int y,int selected_x,int selected_y) 
     {
-        if( first_move_white == false and x>selected_x-20 and x<selected_x+20 and y<selected_y+140 and y>selected_y-25  )
+        if( first_move_white == false and x>=selected_x-20 and x<=selected_x+20 and y<=selected_y+140 and y>=selected_y-25  )
         {           // Moves the pawn two squares forward on its first move
 
 
@@ -31,26 +31,31 @@ using namespace std;
             White_Pawn.moverRect.y = y;
             
         }
-        else if(x>selected_x and x<selected_x+80  and y<selected_y +70 and y>selected_y )
+        else if(x>selected_x and x<=selected_x+80  and y<=selected_y +70 and y>selected_y )
         {    // Moves the pawn one square forward
-            cout<<"new cond"<<x<<" "<<y<<endl;
+            // cout<<"new cond"<<x<<" "<<y<<endl;
             White_Pawn.moverRect.x = x;
             White_Pawn.moverRect.y = y;
             
         }
-        else if( x>selected_x-80 and x<selected_x  and y<selected_y +70 and y>selected_y)
+        else if( x>=selected_x-80 and x<selected_x  and y<=selected_y +70 and y>selected_y)
         {   // Moves the pawn one square forward (alternative direction)
-            cout<<"new cond"<<x<<" "<<y<<endl;
+            // cout<<"new cond"<<x<<" "<<y<<endl;
             White_Pawn.moverRect.x = x;
             White_Pawn.moverRect.y = y;
             
         }
-        else if(first_move_white == true and x>selected_x-20 and x<selected_x+20   and y<selected_y+70 and y>selected_y-25  )
+        else if(first_move_white == true and x>=selected_x-20 and x<=selected_x+20   and y<=selected_y+70 and y>=selected_y-25  )
         {   // Moves the pawn one square forward after its first move
             White_Pawn.moverRect.x = x;
             White_Pawn.moverRect.y = y;
             
         }   
+    }
+    void white_pawn::move_ai(int x,int y,int selected_x,int selected_y)
+    {
+        White_Pawn.moverRect.x = x;
+        White_Pawn.moverRect.y = y;
     }
     void white_pawn:: setFirstMove(bool first) // Sets the first move flag for the white pawn
     {
