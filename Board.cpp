@@ -233,7 +233,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         {
             cout<<"CHECKMATE: Team white Wins"<< endl;
             disableall();// Disable all pieces as the game is over
-            showWinScreen(renderer, "Black Wins!");
+            showWinScreen(renderer, "White Wins!");
             //SDL_Delay(2000);
             //SDL_Quit();
             return;
