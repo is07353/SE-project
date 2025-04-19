@@ -1,4 +1,6 @@
 #include<iostream>
+#include <SDL.h>
+#include <SDL_ttf.h>
 #include "chess_piece.hpp"
 #include "GameChess.hpp"// Include all other chess piece headers
 #include "white_pawn.hpp"
@@ -41,11 +43,12 @@ class Board : private Gamechess
 
     bool black_queen_onboard();// Check if the black queen is on the board
     bool white_queen_onboard();// Check if the white queen is on the board
-    void checknate();// Check if a checkmate has occurred
+    void checknate(SDL_Renderer* renderer);// Check if a checkmate has occurred
     void disableall();// Disable all pieces on the board
     void select_piece(int x, int y);// Select a piece to move or perform an action
     void next_player(int x, int y);// Switch to the next player's turn
     void mouse_in(int x, int y);// Handle mouse input for interactions with the board
+    void showWinScreen(SDL_Renderer* renderer, const string& winnerText);
     ~Board(); // Destructor for board
     //For rule of three
     Board(const Board& obj) = delete;

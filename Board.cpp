@@ -1,4 +1,7 @@
 #include<iostream>
+#include <SDL.h>
+#include <SDL_ttf.h>
+#include <SDL_image.h>
 #include "chess_piece.hpp"
 #include "GameChess.hpp"
 #include "white_pawn.hpp"
@@ -159,7 +162,7 @@ void Board:: run(SDL_Renderer* gRenderer,SDL_Texture* assets, bool first_time)
             }
         }
         //check mate
-        checknate();
+        checknate(gRenderer);
         
     }
 bool Board:: black_queen_onboard()// Check if the black queen is on the board
@@ -199,7 +202,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         }
         return queen;
     }
-    void Board:: checknate()
+    void Board:: checknate(SDL_Renderer* renderer)
     {    // Initialize flags to track whether kings for both black and white teams are present
         bool king_white = false;
         bool king_black = false;
@@ -230,6 +233,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         {
             cout<<"CHECKMATE: Team white Wins"<< endl;
             disableall();// Disable all pieces as the game is over
+            showWinScreen(renderer, "Black Wins!");
             //SDL_Delay(2000);
             //SDL_Quit();
             return;
@@ -238,11 +242,55 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         {
             cout<<"CHECKMATE: Team black Wins"<< endl;
             disableall();// Disable all pieces as the game is over
+            showWinScreen(renderer, "Black Wins!");
             //SDL_Delay(2000);
            // SDL_Quit();
             return;
         }
     }
+
+    void Board::showWinScreen(SDL_Renderer* renderer, const string& winnerText) {
+        SDL_Surface* imageSurface = IMG_Load("bkgd.png");
+        if (!imageSurface) {
+            cout << "Failed to load background image: " << IMG_GetError() << endl;
+            return;
+        }
+    
+        SDL_Texture* background = SDL_CreateTextureFromSurface(renderer, imageSurface);
+        SDL_FreeSurface(imageSurface);
+    
+        // Clear renderer and draw background
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, background, NULL, NULL);
+    
+        // Load font
+        TTF_Font* font = TTF_OpenFont("english.ttf", 48);
+        if (!font) {
+            cout << "Failed to load font: " << TTF_GetError() << endl;
+            return;
+        }
+    
+        SDL_Color white = {255, 255, 255};
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, winnerText.c_str(), white);
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    
+        SDL_Rect textRect;
+        textRect.x = 200;
+        textRect.y = 300;
+        textRect.w = textSurface->w;
+        textRect.h = textSurface->h;
+    
+        SDL_FreeSurface(textSurface);
+        TTF_CloseFont(font);
+    
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_RenderPresent(renderer);
+    
+        SDL_Delay(5000); // show win screen for 5 seconds
+        SDL_DestroyTexture(textTexture);
+        SDL_DestroyTexture(background);
+    }
+
     void Board:: disableall()
     {
          for(int i = 0; i <= 7; i++)

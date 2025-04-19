@@ -3,62 +3,80 @@
 #include "Board.hpp"
 #include "Button.hpp"
 #include "stockfish.hpp"
-#include <chrono> 
+#include <chrono>
+#include <SDL_ttf.h>
+SDL_Renderer* gRenderer = NULL;
+// global variables
+int game_type = 1; // 0 = PVC, 1 = PVP
+int ai_difficulty = 10; // 10 = EASY, 15 = MEDIUM, 20 = HARD
+
+// countdown timer support for PVP
+int countdown = 20; // seconds
+std::chrono::steady_clock::time_point countdownStart;
+bool startCountdown = false;
+
+TTF_Font* font = nullptr;
+
 bool Game::init()
 {
-	//Initialization flag
-	bool success = true;
-
-	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-	{
-		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
-		success = false;
-	}
-	else
-	{
-		//Set texture filtering to linear
-		if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
-		{
-			printf( "Warning: Linear texture filtering not enabled!" );
-		}
-
-		//Create window
-		gWindow = SDL_CreateWindow( "Chess Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-		if( gWindow == NULL )
-		{
-			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
-			success = false;
-		}
-		else
-		{
-			//Create renderer for window
-			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
-			if( gRenderer == NULL )
-			{
-				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
-				success = false;
-			}
-			else
-			{
-				//Initialize renderer color
-				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-
-				//Initialize PNG loading
-				int imgFlags = IMG_INIT_PNG;
-				if( !( IMG_Init( imgFlags ) & imgFlags ) )
-				{
-					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() ); 
-					success = false;
-				}
-
-			}
-		}
+    bool success = true;
+	TTF_Init();
+	if (TTF_Init() == -1) {
+		std::cout << "TTF_Init failed: " << TTF_GetError() << std::endl;
 	}
 
-	return success;
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
+    {
+        printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+        success = false;
+    }
+    else
+    {
+        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
+            printf("Warning: Linear texture filtering not enabled!\n");
+
+        gWindow = SDL_CreateWindow("Chess Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        if (!gWindow)
+        {
+            printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+            success = false;
+        }
+        else
+        {
+            gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
+            if (!gRenderer)
+            {
+                printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+                success = false;
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                int imgFlags = IMG_INIT_PNG;
+                if (!(IMG_Init(imgFlags) & imgFlags))
+                {
+                    printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+                    success = false;
+                }
+                if (TTF_Init() == -1)
+                {
+                    printf("TTF could not initialize! TTF Error: %s\n", TTF_GetError());
+                    success = false;
+                }
+                else
+                {
+                    font = TTF_OpenFont("english.ttf", 24);
+                    if (!font)
+                    {
+                        printf("Failed to load font! TTF Error: %s\n", TTF_GetError());
+                        success = false;
+                    }
+                }
+            }
+        }
+    }
+    return success;
 }
-
 bool Game::loadMedia()
 {
 	//Loading success flag
@@ -70,10 +88,18 @@ bool Game::loadMedia()
 		success = false;
 	}
 
-	startButtonTex = loadTexture("start.png");
+	pvpButtonTex = loadTexture("pvp.png");
+	pvcButtonTex = loadTexture("pvc.png");
 	exitButtonTex = loadTexture("exit.png");
+	easyButtonTex = loadTexture("easy.png");
+	mediumButtonTex = loadTexture("medium.png");
+	hardButtonTex = loadTexture("hard.png");
+	backButtonTex = loadTexture("back.png");
+	backgroundTex = loadTexture("bkgd.png");
+	textTex = loadTexture("choose.png");
 
-	if (startButtonTex == NULL || exitButtonTex == NULL) {
+
+	if (pvpButtonTex == NULL || pvcButtonTex == NULL || easyButtonTex == NULL || mediumButtonTex == NULL || hardButtonTex == NULL || exitButtonTex == NULL) {
 		printf("Failed to load button textures!\n");
 		success = false;
 	}
@@ -87,28 +113,6 @@ bool Game::loadMedia()
         success =false;
     }
 	return success;
-}
-
-void Game::close()
-{
-	//Free loaded images
-	SDL_DestroyTexture(assets);
-	assets=NULL;
-	SDL_DestroyTexture(gTexture);
-	SDL_DestroyTexture(introTexture);
-	introTexture = NULL;
-	SDL_DestroyTexture(startButtonTex);
-	SDL_DestroyTexture(exitButtonTex);
-	
-	
-	//Destroy window
-	SDL_DestroyRenderer( gRenderer );
-	SDL_DestroyWindow( gWindow );
-	gWindow = NULL;
-	gRenderer = NULL;
-	//Quit SDL subsystems
-	IMG_Quit();
-	SDL_Quit();
 }
 
 SDL_Texture* Game::loadTexture( std::string path )
@@ -137,97 +141,141 @@ SDL_Texture* Game::loadTexture( std::string path )
 
 	return newTexture;
  }
-// void Game::run( )
+
+void Game::showIntroScreen()
+{
+    SDL_Event e;
+    Button pvpButton(400, 200, 200, 80, pvpButtonTex);
+    Button pvcButton(400, 220, 200, 250, pvcButtonTex);
+    Button exitButton(400, 400, 200, 80, exitButtonTex);
+
+    while (true)
+    {
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT) return;
+            else if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+
+                if (pvpButton.isClicked(x, y)) {
+                    game_type = 1;
+                    return;
+                }
+                if (pvcButton.isClicked(x, y)) {
+                    game_type = 0;
+                    showDifficultyScreen();
+                    return;
+                }
+                if (exitButton.isClicked(x, y)) return;
+            }
+        }
+        SDL_RenderClear(gRenderer);
+        SDL_RenderCopy(gRenderer, introTexture, NULL, NULL);
+        pvpButton.render(gRenderer);
+        pvcButton.render(gRenderer);
+        exitButton.render(gRenderer);
+        SDL_RenderPresent(gRenderer);
+    }
+}
+
+void Game::showDifficultyScreen()
+{
+    SDL_Event e;
+
+    // create buttons
+    Button easy(400, 100, 200, 250, easyButtonTex);
+    Button medium(400, 200, 200, 250, mediumButtonTex);
+    Button hard(400, 300, 200, 250, hardButtonTex);
+    Button back(20, 10, 200, 250, backButtonTex); // position and size of back button
+
+    // title setup
+    TTF_Font* font = TTF_OpenFont("english.ttf", 28);
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Choose Bot Difficulty", textColor);
+    SDL_Texture* textTex = SDL_CreateTextureFromSurface(gRenderer, textSurface);
+
+    int textW = textSurface->w;
+    int textH = textSurface->h;
+    SDL_FreeSurface(textSurface);
+    SDL_Rect textRect = { 350, 20, textW, textH };  // center aligned
+
+    while (true)
+    {
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT) return;
+            else if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+
+                if (easy.isClicked(x, y)) { ai_difficulty = 10; goto cleanup; }
+                if (medium.isClicked(x, y)) { ai_difficulty = 15; goto cleanup; }
+                if (hard.isClicked(x, y)) { ai_difficulty = 20; goto cleanup; }
+                if (back.isClicked(x, y)) { showIntroScreen(); goto cleanup; }
+            }
+        }
+
+        SDL_RenderClear(gRenderer);
+
+        // render background
+        SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
+
+        // render title
+        SDL_RenderCopy(gRenderer, textTex, NULL, &textRect);
+
+        // render buttons
+        easy.render(gRenderer);
+        medium.render(gRenderer);
+        hard.render(gRenderer);
+        back.render(gRenderer);
+
+        SDL_RenderPresent(gRenderer);
+    }
+
+cleanup:
+    SDL_DestroyTexture(textTex);
+    TTF_CloseFont(font);
+}
+
+// void renderCountdown(int secondsLeft)
 // {
-// 	showIntroScreen();
-// 	Board B1;
-// 	bool quit = false;
-// 	bool once = true;
-// 	SDL_Event e;
-// 	bool tpm = false;
-// 	showIntroScreen();
-// 	{
-// 		tpm = true;
-// 	}
-
-// 	while( !quit)
-// 	{
-		
-// 		//Handle events on queue
-// 		while( SDL_PollEvent( &e ) != 0 )
-// 		{
-// 			float deltaX = 0;
-//     		float deltaY = 0;
-// 			//User requests quit
-// 			if( e.type == SDL_QUIT )
-// 			{
-// 				quit = true;
-// 			}
-
-// 			  if (e.type == SDL_MOUSEMOTION )
-// 				{	
-					
-					
-// 						//cout<<"motion"<<endl;
-// 						int xMouse, yMouse;
-// 						SDL_GetMouseState(&xMouse,&yMouse);
-// 						// deltaX += e.motion.x;
-// 						// deltaY += e.motion.y;
-// 						//cout<<"deltaX"<<deltaX<<"deltay"<<deltaY<<endl;
-// 						B1.mouse_in(xMouse,yMouse);
-					
-					
-// 				}
-// 				if(e.type == SDL_MOUSEBUTTONDOWN)
-// 				{	
-// 					int xMouse, yMouse;
-// 					SDL_GetMouseState(&xMouse,&yMouse);
-// 					//cout << "clicked " <<xMouse<< endl;
-// 					B1.select_piece(xMouse,yMouse);
-// 					std::string uci_history =  B1.generate_uci_move_history();
-// 					bool status = getCheckStatusFromStockfish(uci_history);
-// 					std::cout<<status<<std::endl;
-// 					//std::string status = getCheckStatusFromStockfish(B1.generate_uci_move_history());
-					
-
-				
-// 				}
-// 				if (e.type == SDL_KEYDOWN) {
-// 					switch (e.key.keysym.sym) {
-// 						case SDLK_m:
-// 						{
-// 							std::string uci_history =  B1.generate_uci_move_history();
-// 							std::cout << "uci history: " << uci_history << std::endl;
-// 							std::string user_input_move = getBestMoveFromStockfish(uci_history,20);
-// 							//std::cout << "Enter your move (e.g. a7a5): ";
-// 							//std::cin >> user_input_move;
-// 							//cout<<getBestMoveFromStockfish("position startpos moves e2e4 e7e5",10)<<std::endl;
-							
-// 							B1.apply_uci_move(user_input_move);
-// 							B1.print_board_debug(); // Optional debug visual
-// 							std::cout << "Aimove: " << user_input_move << std::endl;
-// 							bool status = getCheckStatusFromStockfish(uci_history);
-// 							std::cout<<status<<std::endl;
-// 							break;
-// 						}
-// 					}
-// 				}
-// 		}
-		
-// 		SDL_RenderClear(gRenderer); //removes everything from renderer
-// 		SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);//Draws background to renderer
-// 		//***********************draw the objects here********************
-// 		B1.run(gRenderer,assets,once);
-// 		once = false;
-
-// 		//****************************************************************
-//     	SDL_RenderPresent(gRenderer); //displays the updated renderer
-
-// 	    SDL_Delay(2);	//causes sdl engine to delay for specified miliseconds
-// 	}
-			
+//     SDL_Color textColor = { 255, 0, 0, 255 };
+//     std::string timerText = "Time: " + std::to_string(secondsLeft);
+//     SDL_Surface* textSurface = TTF_RenderText_Solid(font, timerText.c_str(), textColor);
+//     if (!textSurface) return;
+//     SDL_Texture* counter = SDL_CreateTextureFromSurface(gRenderer, textSurface);
+//     SDL_Rect renderQuad = { 600, 10, textSurface->w, textSurface->h };
+//     SDL_RenderCopy(gRenderer, counter, NULL, &renderQuad);
+//     SDL_FreeSurface(textSurface);
+//     SDL_DestroyTexture(counter);
 // }
-#include <chrono>
+
+void renderCountdown(int secondsLeft) {
+    if (secondsLeft <= 0) return;
+
+    TTF_Font* font = TTF_OpenFont("english.ttf", 48); 
+    if (!font) {
+        std::cout << "Font not found: " << TTF_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Color color = {255, 255, 255}; // red text
+    std::string text = std::to_string(secondsLeft);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), color);
+    if (!surface) return;
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(gRenderer, surface);
+
+    SDL_Rect dstRect = {55, 500, surface->w, surface->h}; // adjust pos
+    SDL_RenderCopy(gRenderer, texture, NULL, &dstRect);
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
+}
 
 void Game::run()
 {
@@ -236,193 +284,188 @@ void Game::run()
     bool quit = false;
     bool once = true;
     SDL_Event e;
-
-    int turn = 0; // 0 for AI, 1 for Player
+    int turn = 0;
     auto turnStart = std::chrono::steady_clock::now();
-    const int maxTurnTime = 15; // seconds
-	int click = 0;
-	int game_type = 1; //0 pvc 1pvp
-	int ai_difficulty = 20; //10,15,20 are the options
+	countdownStart = std::chrono::steady_clock::now();
+    int click = 0;
+
     while (!quit)
     {
-		//pvc loop
-		if(game_type == 0)
-		{
-			while (SDL_PollEvent(&e) != 0)
-			{
-					if (e.type == SDL_QUIT)
-					{
-						quit = true;
-					}
-
-					// Player's turn
-					if (turn == 1)
-					{
-						//std::cout << "player loop " << std::endl;
-						if (e.type == SDL_MOUSEMOTION)
+        if (game_type == 0) // PVC
+        {
+            {
+				while (SDL_PollEvent(&e) != 0)
+				{
+						if (e.type == SDL_QUIT)
 						{
-							int xMouse, yMouse;
-							SDL_GetMouseState(&xMouse, &yMouse);
-							B1.mouse_in(xMouse, yMouse);
+							quit = true;
 						}
-						if (e.type == SDL_MOUSEBUTTONDOWN)
+	
+						// Player's turn
+						if (turn == 1)
 						{
-							click++;
-							int xMouse, yMouse;
-							SDL_GetMouseState(&xMouse, &yMouse);
-							B1.select_piece(xMouse, yMouse);
-							std::string uci_history = B1.generate_uci_move_history();
-							bool status = getCheckStatusFromStockfish(uci_history);
-							std::cout << "Check status: " << status << std::endl;
-
-							// Turn completed
-							std::cout << "Click status: " << click << std::endl;
-							if(click == 2)
+							//std::cout << "player loop " << std::endl;
+							if (e.type == SDL_MOUSEMOTION)
 							{
-							turn = 0;
-							turnStart = std::chrono::steady_clock::now(); // reset clock
-							click = 0;
+								int xMouse, yMouse;
+								SDL_GetMouseState(&xMouse, &yMouse);
+								B1.mouse_in(xMouse, yMouse);
+							}
+							if (e.type == SDL_MOUSEBUTTONDOWN)
+							{
+								click++;
+								int xMouse, yMouse;
+								SDL_GetMouseState(&xMouse, &yMouse);
+								B1.select_piece(xMouse, yMouse);
+								std::string uci_history = B1.generate_uci_move_history();
+								bool status = getCheckStatusFromStockfish(uci_history);
+								std::cout << "Check status: " << status << std::endl;
+								// Turn completed
+								//if(status==1){B1.showWinScreen(gRenderer, "white Wins!");}
+                                    
+								if(click == 2 )
+								{
+								turn = 0;
+								turnStart = std::chrono::steady_clock::now(); // reset clock
+								click = 0;
+								}
 							}
 						}
+	
+						// AI’s turn
+						if (turn == 0 )
+						{
+							std::string uci_history = B1.generate_uci_move_history();
+							std::cout << "UCI history: " << uci_history << std::endl;
+							std::string aiMove = getBestMoveFromStockfish(uci_history, ai_difficulty);
+							B1.apply_uci_move(aiMove);
+							//B1.print_board_debug();
+							std::cout << "AI move: " << aiMove << std::endl;
+	
+							bool status = getCheckStatusFromStockfish(uci_history);
+							std::cout << "Check status: " << status << std::endl;
+                            //if(status==1){B1.showWinScreen(gRenderer, "white Wins!");}
+                            
+							// Turn completed
+							turn = 1;
+							turnStart = std::chrono::steady_clock::now(); // reset clock
+						}
 					}
-
-					// AI’s turn
-					if (turn == 0 )
+	
+					// Optional: auto-forfeit or auto-move if time exceeds limit
+					auto now = std::chrono::steady_clock::now();
+					int elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - turnStart).count();
+                    int secondsLeft = countdown - elapsed;
+                    if (secondsLeft < 0) secondsLeft = 0;
+                    renderCountdown(elapsed);
+                    SDL_RenderPresent(gRenderer);
+                    SDL_Delay(10);
+					if (elapsed >= maxTurnTime)
 					{
-						std::string uci_history = B1.generate_uci_move_history();
-						std::cout << "UCI history: " << uci_history << std::endl;
-						std::string aiMove = getBestMoveFromStockfish(uci_history, ai_difficulty);
-						B1.apply_uci_move(aiMove);
-						B1.print_board_debug();
-						std::cout << "AI move: " << aiMove << std::endl;
-
-						bool status = getCheckStatusFromStockfish(uci_history);
-						std::cout << "Check status: " << status << std::endl;
-
-						// Turn completed
-						turn = 1;
-						turnStart = std::chrono::steady_clock::now(); // reset clock
+						std::cout << "Time limit reached for turn " << turn << std::endl;
+	
+						if (turn == 1)
+						{
+							// auto-move for AI
+							std::string uci_history = B1.generate_uci_move_history();
+							std::string aiMove = getBestMoveFromStockfish(uci_history, ai_difficulty);
+							B1.apply_uci_move(aiMove);
+							std::cout << "AI auto-move: " << aiMove << std::endl;
+							turn = 0;
+							click = 0;
+						}
+						else
+						{
+							// Optional: end player’s turn or auto-skip
+							std::cout << "Player took too long, skipping turn." << std::endl;
+							turn = 0;
+						}
+	
+						turnStart = now;
 					}
+	
+					SDL_RenderClear(gRenderer);
+					SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
+					B1.run(gRenderer, assets, once);
+					once = false;
+					SDL_RenderPresent(gRenderer);
+					SDL_Delay(2);
+			}
+        }
+        else if (game_type == 1) // PVP
+        {
+            while (SDL_PollEvent(&e))
+            {
+				
+                if (e.type == SDL_QUIT)
+                {
+                    quit = true;
+                }
+				if (e.type == SDL_MOUSEMOTION )
+				{	
+					//cout<<"motion"<<endl;
+					int xMouse, yMouse;
+					SDL_GetMouseState(&xMouse,&yMouse);
+					B1.mouse_in(xMouse,yMouse);
 				}
-
-				// Optional: auto-forfeit or auto-move if time exceeds limit
-				auto now = std::chrono::steady_clock::now();
-				int elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - turnStart).count();
-				if (elapsed >= maxTurnTime)
-				{
-					std::cout << "Time limit reached for turn " << turn << std::endl;
-
-					if (turn == 1)
-					{
-						// Optional: auto-move for AI
-						std::string uci_history = B1.generate_uci_move_history();
-						std::string aiMove = getBestMoveFromStockfish(uci_history, ai_difficulty);
-						B1.apply_uci_move(aiMove);
-						std::cout << "AI auto-move: " << aiMove << std::endl;
-						turn = 0;
-						click = 0;
-					}
-					else
-					{
-						// Optional: end player’s turn or auto-skip
-						std::cout << "Player took too long, skipping turn." << std::endl;
-						turn = 0;
-					}
-
-					turnStart = now;
-				}
-
-				SDL_RenderClear(gRenderer);
-				SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
-				B1.run(gRenderer, assets, once);
-				once = false;
-				SDL_RenderPresent(gRenderer);
-				SDL_Delay(2);
-		}
-	//pvp loop
-		if(game_type == 1)
-		{
-				//Handle events on queue
-				while( SDL_PollEvent( &e ) != 0 )
-				{
-					float deltaX = 0;
-					float deltaY = 0;
-					//User requests quit
-					if( e.type == SDL_QUIT )
-					{
-						quit = true;
-					}
-		
-					if (e.type == SDL_MOUSEMOTION )
-					{	
-						
-						
-							//cout<<"motion"<<endl;
-							int xMouse, yMouse;
-							SDL_GetMouseState(&xMouse,&yMouse);
-							// deltaX += e.motion.x;
-							// deltaY += e.motion.y;
-							//cout<<"deltaX"<<deltaX<<"deltay"<<deltaY<<endl;
-							B1.mouse_in(xMouse,yMouse);
-						
-						
-					}
-					if(e.type == SDL_MOUSEBUTTONDOWN)
-					{	
-						int xMouse, yMouse;
-						SDL_GetMouseState(&xMouse,&yMouse);
-						//cout << "clicked " <<xMouse<< endl;
-						B1.select_piece(xMouse,yMouse);
+				
+                if (e.type == SDL_MOUSEBUTTONDOWN)
+                {
+                    int xMouse, yMouse;
+                    SDL_GetMouseState(&xMouse, &yMouse);
+                    B1.select_piece(xMouse, yMouse);
+                    click++;
 					
-					}
-				}
-		
-				SDL_RenderClear(gRenderer); //removes everything from renderer
-				SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);//Draws background to renderer
-				//***********************draw the objects here********************
-				B1.run(gRenderer,assets,once);
-				once = false;
-		
-				//****************************************************************
-				SDL_RenderPresent(gRenderer); //displays the updated renderer
-		
-				SDL_Delay(2);
-		}
-	}
+                    if (click == 2)
+                    {
+                        turn = 1 - turn; // switch turn
+                        countdownStart = std::chrono::steady_clock::now();
+                        click = 0;
+                    }
+                }
+            }
+
+            
+            SDL_RenderClear(gRenderer);
+            SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
+            B1.run(gRenderer, assets, once);
+            once = false;
+			
+			auto now = std::chrono::steady_clock::now();
+			int elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - countdownStart).count();
+			int secondsLeft = countdown - elapsed;
+			if (secondsLeft < 0) secondsLeft = 0;
+			renderCountdown(secondsLeft);
+			
+			SDL_RenderPresent(gRenderer);
+			
+            SDL_Delay(10);
+        }
+    }
 }
 
-
-void Game::showIntroScreen()
+void Game::close()
 {
-    Button startButton(400, 200, 200, 80, startButtonTex);
-    Button exitButton(400, 300, 200, 80, exitButtonTex);
+    SDL_DestroyTexture(assets);
+    SDL_DestroyTexture(gTexture);
+    SDL_DestroyTexture(introTexture);
+    SDL_DestroyTexture(pvpButtonTex);
+	SDL_DestroyTexture(pvcButtonTex);
+	SDL_DestroyTexture(easyButtonTex);
+	SDL_DestroyTexture(mediumButtonTex);
+	SDL_DestroyTexture(hardButtonTex);
+    SDL_DestroyTexture(exitButtonTex);
 
-    bool introActive = true;
-    SDL_Event e;
+    SDL_DestroyRenderer(gRenderer);
+    SDL_DestroyWindow(gWindow);
+    gWindow = NULL;
+    gRenderer = NULL;
 
-    while (introActive) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                introActive = false;
-            } else if (e.type == SDL_MOUSEBUTTONDOWN) {
-                int x, y;
-                SDL_GetMouseState(&x, &y);
-
-                if (startButton.isClicked(x, y)) {
-                    introActive = false; // Start game
-                } 
-				else if (exitButton.isClicked(x, y)) {
-                    SDL_Quit(); // Exit the game
-                    exit(0);
-                }
-				
-            }
-        }
-
-        SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, introTexture, NULL, NULL); // Background
-        startButton.render(gRenderer);
-        exitButton.render(gRenderer);
-        SDL_RenderPresent(gRenderer);
+    if (font) {
+        TTF_CloseFont(font);
+        font = nullptr;
     }
+    TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
 }
