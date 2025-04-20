@@ -233,7 +233,7 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         {
             cout<<"CHECKMATE: Team white Wins"<< endl;
             disableall();// Disable all pieces as the game is over
-            showWinScreen(renderer, "White Wins!");
+            showWinScreen(renderer, "Black Wins!");
             //SDL_Delay(2000);
             //SDL_Quit();
             return;
@@ -734,6 +734,60 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
             return;
     
         if (board[from_x][from_y] == nullptr) return;
+        if (uci_move == "e1g1") { // White King-side castling
+            // Move the king
+            board[to_x][to_y] = board[from_x][from_y];
+            board[from_x][from_y] = nullptr;
+    
+            // Move the rook from h1 to f1
+            board[5][0] = board[7][0];
+            board[7][0] = nullptr;
+    
+            // Update screen coordinates
+            int king_new_x = 75 * (to_x + 2) + 40;
+            int king_new_y = 65 * (to_y) + 35;
+            int king_old_x = 75 * (from_x + 2) + 40;
+            int king_old_y = 65 * (from_y) + 35;
+    
+            int rook_new_x = 75 * (5 + 2) + 40; // f1
+            int rook_new_y = 65 * (0) + 35;
+            int rook_old_x = 75 * (7 + 2) + 40; // h1
+            int rook_old_y = 65 * (0) + 35;
+    
+            board[to_x][to_y]->move_ai(king_new_x, king_new_y, king_old_x, king_old_y);
+            board[5][0]->move_ai(rook_new_x, rook_new_y, rook_old_x, rook_old_y);
+    
+            move_history.push_back(uci_move);
+            next_player(to_x, to_y);
+            return;
+        }
+        else if (uci_move == "e1c1") { // White Queen-side castling
+            // Move the king
+            board[to_x][to_y] = board[from_x][from_y];
+            board[from_x][from_y] = nullptr;
+    
+            // Move the rook from a1 to d1
+            board[3][0] = board[0][0];
+            board[0][0] = nullptr;
+    
+            // Update screen coordinates
+            int king_new_x = 80 * (to_x + 2) + 40;
+            int king_new_y = 70 * (to_y) + 35;
+            int king_old_x = 80 * (from_x + 2) + 40;
+            int king_old_y = 70 * (from_y) + 35;
+    
+            int rook_new_x = 80 * (3 + 2) + 40; // d1
+            int rook_new_y = 70 * (0) + 35;
+            int rook_old_x = 80 * (0 + 2) + 40; // a1
+            int rook_old_y = 70 * (0) + 35;
+    
+            board[to_x][to_y]->move_ai(king_new_x, king_new_y, king_old_x, king_old_y);
+            board[3][0]->move_ai(rook_new_x, rook_new_y, rook_old_x, rook_old_y);
+    
+            move_history.push_back(uci_move);
+            next_player(to_x, to_y);
+            return;
+        }
         // Move piece in board array
         board[to_x][to_y] = board[from_x][from_y];
         board[from_x][from_y] = nullptr;
@@ -743,15 +797,15 @@ bool Board:: black_queen_onboard()// Check if the black queen is on the board
         int old_screen_x = 80 * (from_x + 2) + 40;
         int old_screen_y = 70 * (from_y) + 35;
         
-        std::cout<<to_x<<std::endl;
-        std::cout<<to_y<<std::endl;
-        std::cout<<from_x<<std::endl;
-        std::cout<<from_y<<std::endl;
+        // std::cout<<to_x<<std::endl;
+        // std::cout<<to_y<<std::endl;
+        // std::cout<<from_x<<std::endl;
+        // std::cout<<from_y<<std::endl;
 
-        std::cout<<new_screen_x<<std::endl;
-        std::cout<<new_screen_y<<std::endl;
-        std::cout<<old_screen_x<<std::endl;
-        std::cout<<old_screen_y<<std::endl;
+        // std::cout<<new_screen_x<<std::endl;
+        // std::cout<<new_screen_y<<std::endl;
+        // std::cout<<old_screen_x<<std::endl;
+        // std::cout<<old_screen_y<<std::endl;
 
         // std::cout << "Moving: " << board[to_x][to_y]->getType() << " from " 
         //   << char('a' + from_x) << from_y + 1 << " to "
